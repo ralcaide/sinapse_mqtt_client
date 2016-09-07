@@ -1,82 +1,32 @@
 require_relative "helpers"
 require "mqtt"
 
-module SinapseMQTTClient
+module SinapseMQTTClientWrapper
 
 	
-	#MQTTClient: Class that implements the management of a MQTT Client
-	# Connection, disconnection, send and receive
+	# SinapseMQTTClient  
+	# Class that implements the management of a MQTT Client offering the Sinapse API 
+	# This class inherits from MQTT::Client : https://github.com/njh/ruby-mqtt
+	# and provides methods that offer the Sinapse API: Create Sinapse messages and publish them in the Sinapse formatted topics
+	# The methods for the MQTT Client management are the ones provided my MQTT::Client
 	
-	class MQTTClient
+	class SinapseMQTTClient < MQTT::Client
 
 		#attr_reader :number_of_bytes, :command, :source_address, :destination_address, :parameter_1, :parameter_2, :parameter_3, :pa, :ttl, :checksum, :parameter_4
 		#attr_accessor :source_address, :destination_address
-		attr_reader :client
-		attr_accessor :client
-
 		
-   		def initialize
-   			@client = MQTT::Client.new
-   		end
-
-   		# Function to connect to a MQTT Broker
-   		# Inputs:
-   		# host: String - Url of the broker
-        # port: Int - Port number
-        # tls: Boolean - SSL or not
-        # user: String - Username
-        # password: String - Password of the username
-		def connect(host="m21.cloudmqtt.com", port=10609, tls=false, user="ugjznzkc", password="7UG2yVgH3zzi")
-			
-			if !@client.connected? then   
-				@client.host = host
-				@client.port = port
-				@client.ssl = tls
-				@client.username = user
-				@client.password = password
-				@client.connect()
-				puts "MQTT client connected to the server"
-			else
-				puts "MQTT client already connected to the server"
+		# Connect
+		# Overrides the connect method of MQTT::Client because the parent method leaves 
+		# a connected = true after a fail connect. After a fail connect, the method 
+		# connected? should return false instead of true
+		def connect
+			begin
+				super
+			rescue Exception => ex
+				disconnect() #TODO RAE: This behaviour works when the problem is not due to SSL. Try to fix it for SSL
+				raise ex
 			end
 
-		end
-
-		
-		# Function to disconnect the MQTT client from the server / broker
-		def disconnect()
-			
-			if @client.connected? then
-				@client.disconnect()
-				puts "MQTT client disconnected from the server"
-			else
-				puts "The client was not connected to the server"
-			end
-			
-		end
-
-		
-		# Function to ask if the client is connected to the broker
-		def connected?
-			@client.connected?
-		end
-
-		
-		# Function to publish a message in a given topic
-		# Inputs:
-		# topic: String - Address where the message will be published
-		# message: String - Message that will be published
-		def publish(topic, message)
-			@client.publish(topic, message)
-			puts "Message: "+ message + " published in " + topic
-		end
-
-
-		# Function to subscribe the client to any topic
-		# Inputs: 
-		# topic: String - Address where the client will be subscribed to
-		def subscribe(topic)
-			@client.subscribe(topic)
 		end
 
 
@@ -85,11 +35,13 @@ module SinapseMQTTClient
 		# If the method is called with a block, it is necessary to create a thread in order to doesn't block the program
 		def receive_messages_from_subscribed_topics 
 			if block_given?
-					@client.get do |topic, message|
+					#@client.get do |topic, message|
+					get do |topic, message|	
 						yield(topic, message)
 					end
 			else 
-				topic, message = @client.get
+				#topic, message = @client.get
+				topic, message = get
 				return topic, message
 			end
 		end

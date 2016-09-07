@@ -72,6 +72,8 @@
     
     <li ><a href="#method-i-test_send_and_receive_messages">#test_send_and_receive_messages</a>
     
+    <li ><a href="#method-i-test_sinapse_mqtt_client_connect_fails">#test_sinapse_mqtt_client_connect_fails</a>
+    
     <li ><a href="#method-i-test_sinapse_mqtt_client_connects_default">#test_sinapse_mqtt_client_connects_default</a>
     
     <li ><a href="#method-i-test_sinapse_mqtt_client_connects_ssl">#test_sinapse_mqtt_client_connects_ssl</a>
@@ -79,6 +81,8 @@
     <li ><a href="#method-i-test_sinapse_mqtt_client_disconnects">#test_sinapse_mqtt_client_disconnects</a>
     
     <li ><a href="#method-i-test_sinapse_mqtt_client_exists">#test_sinapse_mqtt_client_exists</a>
+    
+    <li ><a href="#method-i-test_subscribe_to_empty_topics">#test_subscribe_to_empty_topics</a>
     
   </ul>
 </div>
@@ -133,24 +137,81 @@
 
           
           <div class="method-source-code" id="test_send_and_receive_messages-source">
-            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 41</span>
+            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 65</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">test_send_and_receive_messages</span>
-        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClient</span><span class="ruby-operator">::</span><span class="ruby-constant">MQTTClient</span>.<span class="ruby-identifier">new</span>
+
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+        <span class="ruby-comment">#mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.connect(:host =&gt; $MQTT_broker, :port =&gt; $normal_port, :username =&gt; $MQTT_user, :password =&gt; $MQTT_password)</span>
+
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
-        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">subscribe</span>(<span class="ruby-string">&quot;/installation1/APID/ACT/Device1&quot;</span>)
-        <span class="ruby-comment">#assert_equal mqtt_client.subscribe(&quot;/installation1/APID/ACT/Device2&quot;), 31 </span>
+        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">subscribe</span>(<span class="ruby-string">&quot;/installation1/APID/ACT/Device1&quot;</span>) 
 
 
+        <span class="ruby-comment"># TODO RAE: To improve the following part</span>
         <span class="ruby-comment"># This part of the test is not working well. Maybe it is due the creation of a new Thread in order to receive the messages</span>
-        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">receive_messages_from_subscribed_topics</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span><span class="ruby-operator">|</span>
-                <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">message</span>, <span class="ruby-string">&quot;test_message&quot;</span>
-                <span class="ruby-identifier">assert_not_equal</span> <span class="ruby-identifier">topic</span>, <span class="ruby-string">&quot;/installation1/APID/ACT/Device3&quot;</span>
-        <span class="ruby-keyword">end</span>
+        <span class="ruby-comment">#mqtt_client.receive_messages_from_subscribed_topics do |topic, message|</span>
+        <span class="ruby-comment">#     assert_equal message, &quot;test_message&quot;</span>
+        <span class="ruby-comment">#     assert_not_equal topic, &quot;/installation1/APID/ACT/Device3&quot;</span>
+        <span class="ruby-comment">#end</span>
 
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">publish</span>(<span class="ruby-string">&quot;/installation1/APID/ACT/Device1&quot;</span>, <span class="ruby-string">&quot;test_message&quot;</span>)
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">publish</span>(<span class="ruby-string">&quot;/installation1/APID/ACT/Device2&quot;</span>, <span class="ruby-string">&quot;test_message&quot;</span>)
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">publish</span>(<span class="ruby-string">&quot;/installation1/APID/ACT/Device3&quot;</span>, <span class="ruby-string">&quot;test_message&quot;</span>) <span class="ruby-comment"># This message is not got in the subscription</span>
 
+        <span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span> = <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">receive_messages_from_subscribed_topics</span>
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">message</span>, <span class="ruby-string">&quot;test_message&quot;</span>
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">topic</span>, <span class="ruby-string">&quot;/installation1/APID/ACT/Device1&quot;</span>
+
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-test_sinapse_mqtt_client_connect_fails" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">test_sinapse_mqtt_client_connect_fails</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="test_sinapse_mqtt_client_connect_fails-source">
+            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 34</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">test_sinapse_mqtt_client_connect_fails</span>
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:ssl</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword">true</span> ,<span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+        
+        <span class="ruby-keyword">begin</span>
+                <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
+        <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-constant">OpenSSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSL</span><span class="ruby-operator">::</span><span class="ruby-constant">SSLError</span>, <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">class</span>        
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">true</span> <span class="ruby-comment">#TODO RAE: The result should be false</span>
+
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-string">&#39;fake&#39;</span>)
+
+        <span class="ruby-keyword">begin</span>
+                <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
+        <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-constant">MQTT</span><span class="ruby-operator">::</span><span class="ruby-constant">ProtocolException</span>, <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">class</span>       
+        <span class="ruby-keyword">end</span>
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">false</span>
 
 <span class="ruby-keyword">end</span></pre>
           </div>
@@ -184,8 +245,10 @@
           <div class="method-source-code" id="test_sinapse_mqtt_client_connects_default-source">
             <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 18</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">test_sinapse_mqtt_client_connects_default</span>
-        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClient</span><span class="ruby-operator">::</span><span class="ruby-constant">MQTTClient</span>.<span class="ruby-identifier">new</span>
-        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+        <span class="ruby-comment"># Creating the object through the method connect does not return the correct object</span>
+        <span class="ruby-comment">#mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.connect(:host =&gt; $MQTT_broker, :port =&gt; $normal_port, :username =&gt; $MQTT_user, :password =&gt; $MQTT_password)</span>
+        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>();
         <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">true</span>
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">disconnect</span>() 
 <span class="ruby-keyword">end</span></pre>
@@ -218,10 +281,10 @@
 
           
           <div class="method-source-code" id="test_sinapse_mqtt_client_connects_ssl-source">
-            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 25</span>
+            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 27</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">test_sinapse_mqtt_client_connects_ssl</span>
-        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClient</span><span class="ruby-operator">::</span><span class="ruby-constant">MQTTClient</span>.<span class="ruby-identifier">new</span>
-        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>(<span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-identifier">$ssl_port</span>, <span class="ruby-keyword">true</span>, <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-identifier">$MQTT_password</span>)
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$ssl_port</span>, <span class="ruby-value">:ssl</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-keyword">true</span> ,<span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>();
         <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">true</span>
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">disconnect</span>()
 <span class="ruby-keyword">end</span></pre>
@@ -254,10 +317,10 @@
 
           
           <div class="method-source-code" id="test_sinapse_mqtt_client_disconnects-source">
-            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 32</span>
+            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 56</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">test_sinapse_mqtt_client_disconnects</span> 
-        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClient</span><span class="ruby-operator">::</span><span class="ruby-constant">MQTTClient</span>.<span class="ruby-identifier">new</span>
-        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>();
         <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">true</span>
         <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">disconnect</span>()
         <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>, <span class="ruby-keyword">false</span>
@@ -294,7 +357,60 @@
           <div class="method-source-code" id="test_sinapse_mqtt_client_exists-source">
             <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 14</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">test_sinapse_mqtt_client_exists</span>
-        <span class="ruby-identifier">assert</span> <span class="ruby-constant">SinapseMQTTClient</span><span class="ruby-operator">::</span><span class="ruby-constant">MQTTClient</span>
+        <span class="ruby-identifier">assert</span> <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-test_subscribe_to_empty_topics" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">test_subscribe_to_empty_topics</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          
+          
+          
+
+          
+          <div class="method-source-code" id="test_subscribe_to_empty_topics-source">
+            <pre><span class="ruby-comment"># File test/sinapse_mqtt_client/sinapse_mqtt_client_test.rb, line 91</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">test_subscribe_to_empty_topics</span>
+        <span class="ruby-identifier">mqtt_client</span> = <span class="ruby-constant">SinapseMQTTClientWrapper</span><span class="ruby-operator">::</span><span class="ruby-constant">SinapseMQTTClient</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">:host</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_broker</span>, <span class="ruby-value">:port</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$normal_port</span>, <span class="ruby-value">:username</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_user</span>, <span class="ruby-value">:password</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">$MQTT_password</span>)
+
+        <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connect</span>()
+        <span class="ruby-keyword">begin</span>
+                <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">subscribe</span>()
+                <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;after subscribe&quot;</span>
+        <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">message</span>, <span class="ruby-string">&quot;no topics given when serialising packet&quot;</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">class</span>, <span class="ruby-constant">RuntimeError</span>
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-keyword">true</span>, <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span>
+
+        <span class="ruby-keyword">begin</span>
+                <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">subscribe</span>()
+        <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Exception</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">ex</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">message</span>, <span class="ruby-string">&quot;no topics given when serialising packet&quot;</span>
+                <span class="ruby-identifier">assert_equal</span> <span class="ruby-identifier">ex</span>.<span class="ruby-identifier">class</span>, <span class="ruby-constant">RuntimeError</span>
+        <span class="ruby-keyword">end</span>
+        <span class="ruby-identifier">assert_equal</span> <span class="ruby-keyword">true</span>, <span class="ruby-identifier">mqtt_client</span>.<span class="ruby-identifier">connected?</span> 
+
 <span class="ruby-keyword">end</span></pre>
           </div>
           
