@@ -15,6 +15,10 @@ module SinapseMQTTClient
 		attr_accessor :client
 
 		
+   		def initialize
+   			@client = MQTT::Client.new
+   		end
+
    		# Function to connect to a MQTT Broker
    		# Inputs:
    		# host: String - Url of the broker
@@ -23,8 +27,6 @@ module SinapseMQTTClient
         # user: String - Username
         # password: String - Password of the username
 		def connect(host="m21.cloudmqtt.com", port=10609, tls=false, user="ugjznzkc", password="7UG2yVgH3zzi")
-	
-			@client = MQTT::Client.new
 			
 			if !@client.connected? then   
 				@client.host = host
@@ -82,18 +84,10 @@ module SinapseMQTTClient
 		# It runs as a forever / infinite loop if it is called with a block. If not, it waits until a message is received and is returned to a the caller
 		# If the method is called with a block, it is necessary to create a thread in order to doesn't block the program
 		def receive_messages_from_subscribed_topics 
-			##
-			#Thread.new {
-			#	@client.get do |topic, message|
-			#		puts "Message received: " + message + "from: " + topic
-			#	end
-			#}
 			if block_given?
-				Thread.new {
 					@client.get do |topic, message|
 						yield(topic, message)
 					end
-				}	
 			else 
 				topic, message = @client.get
 				return topic, message
