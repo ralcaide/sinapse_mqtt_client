@@ -112,4 +112,246 @@ class FramesTest < Minitest::Test
 
 	end
 
+	def test_ask_measurement_epd
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.ask_measurement_epd(["111111"], "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "1;"} 
+		
+
+		result = mqtt_client.ask_measurement_epd(["111111", "222222"], "CMC111112" )
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "1;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "1;"}
+
+		result = mqtt_client.ask_measurement_epd(["111111"])
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "1;"}
+
+		mqtt_client.disconnect() 
+
+	end
+
+	def test_ask_measurement_epd_fails
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		begin
+			mqtt_client.ask_measurement_epd(["111111"], "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.ask_measurement_epd(["111111"], "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.ask_measurement_epd([], "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one EPD"
+		end
+
+		result = mqtt_client.ask_measurement_epd(["111111"], "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "1;"}
+
+		mqtt_client.disconnect()
+	end
+
+	def test_on_demand_act_epd
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.on_demand_act_epd(["111111"], 100,"CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "3;100;"} 
+		
+
+		result = mqtt_client.on_demand_act_epd(["111111", "222222"], 0, "CMC111112" )
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "3;0;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "3;0;"}
+
+		result = mqtt_client.on_demand_act_epd(["111111"], 50)
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "3;50;"} 
+
+		mqtt_client.disconnect()
+	end
+
+	def test_on_demand_act_epd_fails
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		begin
+			mqtt_client.on_demand_act_epd(["111111"], 100 ,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.on_demand_act_epd(["111111"], 100,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.on_demand_act_epd([], 100 , "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one EPD"
+		end
+
+
+		begin
+			mqtt_client.on_demand_act_epd(["111111"], 105 , "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "Dimming value is not in the correct range: 0 to 100"
+		end
+
+		begin
+			mqtt_client.on_demand_act_epd(["111111"])
+
+		rescue Exception => ex
+			
+		end
+
+		result = mqtt_client.on_demand_act_epd(["111111"], 30, "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "3;30;"}
+
+		mqtt_client.disconnect()
+	end
+
+
+	def test_ask_measurement_ap
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.ask_measurement_ap(["CMC111111"],)
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "1;"} 
+		
+
+		result = mqtt_client.ask_measurement_ap(["CMC111111", "CMC222222"])
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "1;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC/ACT/CMC222222", :message => "1;"}
+
+		mqtt_client.disconnect()
+	end
+
+	def test_ask_measurement_ap_fails
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		begin
+			mqtt_client.ask_measurement_ap(["CMC111111"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.ask_measurement_ap(["CMC111111"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.ask_measurement_ap([])
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one AP"
+		end
+
+		result = mqtt_client.ask_measurement_ap(["CMC111111"])
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "1;"}
+
+		mqtt_client.disconnect()
+	end
+
+	def test_change_relay_status_ap
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"])
+		
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACTX;ACTX;"} 
+		
+
+		result = mqtt_client.change_relay_status_ap(["CMC111111", "CMC222222"], ["0","1", "X","X","X","1","X"])
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACT1;ACTX;" }
+		assert_equal result[1], {:topic => "INSTALLATION/CMC/ACT/CMC222222", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACT1;ACTX;" }
+
+		mqtt_client.disconnect()
+	end
+
+	def test_change_relay_status_ap
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		begin
+			mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.change_relay_status_ap([], ["0","1", "X","X","X","X","X"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one AP"
+		end
+
+
+		begin
+			mqtt_client.change_relay_status_ap(["CMC111111"], ["1", "X","X","X","X","X"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The list of relay status should contains 7 elements"
+		end
+
+		begin
+			mqtt_client.change_relay_status_ap(["CMC111111"], ["A", "1", "X","X","X","X","X"])
+
+		rescue Exception => ex
+			assert_equal ex.message, "The value of a relay status should be 1, 0 or X"
+		end
+
+		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"] )
+		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACTX;ACTX;"}
+		
+		mqtt_client.disconnect()
+	end
 end

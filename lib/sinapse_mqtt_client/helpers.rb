@@ -20,4 +20,8 @@ def is_valid_radio_configuration(address)
 	return true
 end
 
+def is_valid_ap_id(ap_id)
+	# RAE TODO
+	return true
+end
 

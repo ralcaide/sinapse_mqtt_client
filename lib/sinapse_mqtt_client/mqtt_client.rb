@@ -14,6 +14,9 @@ module SinapseMQTTClientWrapper
 
 		#attr_reader :number_of_bytes, :command, :source_address, :destination_address, :parameter_1, :parameter_2, :parameter_3, :pa, :ttl, :checksum, :parameter_4
 		#attr_accessor :source_address, :destination_address
+
+		attr_reader :installation_id
+		attr_accessor :installation_id
 		
 		# Connect
 		# Overrides the connect method of MQTT::Client because the parent method leaves 
@@ -46,6 +49,187 @@ module SinapseMQTTClientWrapper
 			end
 		end
 
+
+		#Implementation of the API commands
+		
+		#EPD Commands (End Point Device commands)
+
+		# Function ask_measurement_epd - API: 1. Pull measurement
+		# Input arguments:
+		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)
+		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def ask_measurement_epd(epd_id_list, ap_id="APID")
+			
+			check_epd_general_arguments_and_connection(epd_id_list, ap_id)
+
+			messages_published = []
+			
+			basic_topic = @installation_id + "/"+ ap_id + "/" + "ACT/"
+			message = "1;" 
+			epd_id_list.each do |epd_id|
+				topic = basic_topic + epd_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+		end
+
+
+		# Function on_demand_act_epd - API: 3. OnDemand Actuation (Lighting Status)
+		# Input arguments:
+		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)
+		# dimming: Integer between 0 and 100. It indicates the status of the light. 0=OFF, 100=ON(100%) 50=ON-DIMMING_TO(50%)
+		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def on_demand_act_epd(epd_id_list, dimming, ap_id="APID")
+
+			check_epd_general_arguments_and_connection(epd_id_list, ap_id)
+			check_epd_dimming(dimming)
+
+			messages_published = []
+			
+			basic_topic = @installation_id + "/"+ ap_id + "/" + "ACT/"
+			message = "3;" + dimming.to_s + ";"   
+			epd_id_list.each do |epd_id|
+				topic = basic_topic + epd_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+
+		end
+
+
+
+		# AP / CMC Commands (Access Point commands)	
+
+		# Function ask_measurement_ap - API: 9. Pull measurement
+		# Input arguments:
+		# ap_id_list:  List of AP devices. It should contains at least one AP ID. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID.
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def ask_measurement_ap(ap_id_list)
+			
+			check_ap_general_arguments_and_connection(ap_id_list)
+
+			messages_published = []
+			
+			basic_topic = @installation_id + "/CMC/ACT/" 
+			message = "1;" 
+			ap_id_list.each do |ap_id|
+				topic = basic_topic + ap_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+		end		
+
+
+		# Funtion change_relay_status_ap - API: 10. Status Change (Acy over relays)
+		# Input arguments:
+		# ap_id_list:  List of AP devices. It should contains at least one AP ID. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID.
+		# relay_status_list: List of seven elements that contains the status of each relay -> 0 / 1 / X
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def change_relay_status_ap(ap_id_list, relay_status_list)
+			
+			check_ap_general_arguments_and_connection(ap_id_list)
+			check_ap_relay_status_list(relay_status_list)
+
+			messages_published = []
+			
+			basic_topic = @installation_id + "/CMC/ACT/" 
+			message = "ACT" + relay_status_list[0] + ";ACT" + relay_status_list[1] + ";ACT" + relay_status_list[2] \
+				+ ";ACT" + relay_status_list[3] \
+				+ ";ACT" + relay_status_list[4] \
+				+ ";ACT" + relay_status_list[5] \
+				+ ";ACT" + relay_status_list[6] + ";"
+
+			ap_id_list.each do |ap_id|
+				topic = basic_topic + ap_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+
+		end
+
+
+private
+		def check_epd_general_arguments_and_connection(epd_id_list, ap_id)
+			unless connected?
+				raise "The client is disconnected from the broker"
+			end		
+
+			if @installation_id.nil?
+				raise "The ID of the installation can not be empty"
+			end	
+
+			if epd_id_list.empty?
+				raise "It should be provided at least one EPD"
+			end
+			
+			#TODO RAE: To check that AP_ID is valid
+			unless is_valid_ap_id(ap_id)
+				raise "The AP_ID is not valid"
+			end
+
+			#TODO RAE: To check each EPD_ID -> RF // IoT?
+		
+		end
+
+		def check_epd_dimming(dimming)
+			unless dimming.between?(0, 100)
+				raise "Dimming value is not in the correct range: 0 to 100"
+			end
+
+		end
+
+		def check_ap_general_arguments_and_connection(ap_id_list)
+			unless connected?
+				raise "The client is disconnected from the broker"
+			end		
+
+			if @installation_id.nil?
+				raise "The ID of the installation can not be empty"
+			end	
+
+			if ap_id_list.empty?
+				raise "It should be provided at least one AP"
+			end
+			
+			#TODO RAE: To check that AP_ID is valid
+			ap_id_list.each do |ap_id|
+				unless is_valid_ap_id(ap_id)
+					raise "The AP_ID is not valid"
+				end
+			end
+		
+		end
+
+		def check_ap_relay_status_list(relay_status_list)
+			unless relay_status_list.length == 7
+				raise "The list of relay status should contains 7 elements"
+			end
+
+			relay_status_list.each do |relay_status|
+				if /^[10X]$/.match(relay_status).nil?
+					raise "The value of a relay status should be 1, 0 or X"
+				end
+			end
+
+		end
 	end
 		
 end
