@@ -70,7 +70,15 @@
 
   <ul class="link-list" role="directory">
     
+    <li ><a href="#method-i-ask_measurement_ap">#ask_measurement_ap</a>
+    
+    <li ><a href="#method-i-ask_measurement_epd">#ask_measurement_epd</a>
+    
+    <li ><a href="#method-i-change_relay_status_ap">#change_relay_status_ap</a>
+    
     <li class="calls-super" ><a href="#method-i-connect">#connect</a>
+    
+    <li ><a href="#method-i-on_demand_act_epd">#on_demand_act_epd</a>
     
     <li ><a href="#method-i-receive_messages_from_subscribed_topics">#receive_messages_from_subscribed_topics</a>
     
@@ -109,12 +117,198 @@ Client management are the ones provided my MQTT::Client</p>
     
 
     
+    <section class="attribute-method-details" class="method-section">
+      <header>
+        <h3>Attributes</h3>
+      </header>
+
+      
+      <div id="attribute-i-installation_id" class="method-detail">
+        <div class="method-heading attribute-method-heading">
+          <span class="method-name">installation_id</span><span
+            class="attribute-access-type">[RW]</span>
+        </div>
+
+        <div class="method-description">
+        
+        <p>attr_reader :number_of_bytes, :command, :source_address,
+:destination_address, :parameter_1, :parameter_2, :parameter_3, :pa, :ttl,
+:checksum, :parameter_4 attr_accessor :source_address, :destination_address</p>
+        
+        </div>
+      </div>
+      
+    </section>
+    
 
     
      <section id="public-instance-5Buntitled-5D-method-details" class="method-section">
        <header>
          <h3>Public Instance Methods</h3>
        </header>
+
+    
+      <div id="method-i-ask_measurement_ap" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">ask_measurement_ap</span><span
+            class="method-args">(ap_id_list)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Function <a
+href="SinapseMQTTClient.html#method-i-ask_measurement_ap">#ask_measurement_ap</a>
+- API: 9. Pull measurement Input arguments: ap_id_list:  List of AP
+devices. It should contains at least one AP ID. The AP_ID can be the ID of
+a AP, a group ID or a broadcast ID. Output: Returns an array of hashes with
+the messages published in each topic. The hashes are like {:topic =&gt;
+topic, :message =&gt; message}</p>
+          
+          
+
+          
+          <div class="method-source-code" id="ask_measurement_ap-source">
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 119</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">ask_measurement_ap</span>(<span class="ruby-identifier">ap_id_list</span>)
+        
+        <span class="ruby-identifier">check_ap_general_arguments_and_connection</span>(<span class="ruby-identifier">ap_id_list</span>)
+
+        <span class="ruby-identifier">messages_published</span> = []
+        
+        <span class="ruby-identifier">basic_topic</span> = <span class="ruby-ivar">@installation_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/CMC/ACT/&quot;</span> 
+        <span class="ruby-identifier">message</span> = <span class="ruby-string">&quot;1;&quot;</span> 
+        <span class="ruby-identifier">ap_id_list</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ap_id</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">topic</span> = <span class="ruby-identifier">basic_topic</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">ap_id</span>         
+                <span class="ruby-identifier">publish</span>(<span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span>)
+                <span class="ruby-identifier">messages_published</span>.<span class="ruby-identifier">push</span>({<span class="ruby-value">:topic</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">topic</span>, <span class="ruby-value">:message</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">message</span>})
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">messages_published</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-ask_measurement_epd" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">ask_measurement_epd</span><span
+            class="method-args">(epd_id_list, ap_id="APID")</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Function <a
+href="SinapseMQTTClient.html#method-i-ask_measurement_epd">#ask_measurement_epd</a>
+- API: 1. Pull measurement Input arguments: epd_id_list: List of epd
+devices. It should contains at least one epd id (RF or IoT) ap_id: Id of
+the Access point to be used to reach the epd, or the list of epds. The
+AP_ID can be the ID of a AP, a group ID or a broadcast ID. The default
+value is APID -&gt; It is not necessary any AP to reach the end point
+device Output: Returns an array of hashes with the messages published in
+each topic. The hashes are like {:topic =&gt; topic, :message =&gt;
+message}</p>
+          
+          
+
+          
+          <div class="method-source-code" id="ask_measurement_epd-source">
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 64</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">ask_measurement_epd</span>(<span class="ruby-identifier">epd_id_list</span>, <span class="ruby-identifier">ap_id</span>=<span class="ruby-string">&quot;APID&quot;</span>)
+        
+        <span class="ruby-identifier">check_epd_general_arguments_and_connection</span>(<span class="ruby-identifier">epd_id_list</span>, <span class="ruby-identifier">ap_id</span>)
+
+        <span class="ruby-identifier">messages_published</span> = []
+        
+        <span class="ruby-identifier">basic_topic</span> = <span class="ruby-ivar">@installation_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/&quot;</span><span class="ruby-operator">+</span> <span class="ruby-identifier">ap_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;ACT/&quot;</span>
+        <span class="ruby-identifier">message</span> = <span class="ruby-string">&quot;1;&quot;</span> 
+        <span class="ruby-identifier">epd_id_list</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">epd_id</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">topic</span> = <span class="ruby-identifier">basic_topic</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">epd_id</span>        
+                <span class="ruby-identifier">publish</span>(<span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span>)
+                <span class="ruby-identifier">messages_published</span>.<span class="ruby-identifier">push</span>({<span class="ruby-value">:topic</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">topic</span>, <span class="ruby-value">:message</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">message</span>})
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">messages_published</span>
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-change_relay_status_ap" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">change_relay_status_ap</span><span
+            class="method-args">(ap_id_list, relay_status_list)</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Funtion <a
+href="SinapseMQTTClient.html#method-i-change_relay_status_ap">#change_relay_status_ap</a>
+- API: 10. Status Change (Acy over relays) Input arguments: ap_id_list: 
+List of AP devices. It should contains at least one AP ID. The AP_ID can be
+the ID of a AP, a group ID or a broadcast ID. relay_status_list: List of
+seven elements that contains the status of each relay -&gt; 0 / 1 / X
+Output: Returns an array of hashes with the messages published in each
+topic. The hashes are like {:topic =&gt; topic, :message =&gt; message}</p>
+          
+          
+
+          
+          <div class="method-source-code" id="change_relay_status_ap-source">
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 144</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">change_relay_status_ap</span>(<span class="ruby-identifier">ap_id_list</span>, <span class="ruby-identifier">relay_status_list</span>)
+        
+        <span class="ruby-identifier">check_ap_general_arguments_and_connection</span>(<span class="ruby-identifier">ap_id_list</span>)
+        <span class="ruby-identifier">check_ap_relay_status_list</span>(<span class="ruby-identifier">relay_status_list</span>)
+
+        <span class="ruby-identifier">messages_published</span> = []
+        
+        <span class="ruby-identifier">basic_topic</span> = <span class="ruby-ivar">@installation_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/CMC/ACT/&quot;</span> 
+        <span class="ruby-identifier">message</span> = <span class="ruby-string">&quot;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">0</span>] <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">2</span>]                                  <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">3</span>]                                  <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">4</span>]                                  <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">5</span>]                                  <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;ACT&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">relay_status_list</span>[<span class="ruby-value">6</span>] <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;&quot;</span>
+
+        <span class="ruby-identifier">ap_id_list</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ap_id</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">topic</span> = <span class="ruby-identifier">basic_topic</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">ap_id</span>         
+                <span class="ruby-identifier">publish</span>(<span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span>)
+                <span class="ruby-identifier">messages_published</span>.<span class="ruby-identifier">push</span>({<span class="ruby-value">:topic</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">topic</span>, <span class="ruby-value">:message</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">message</span>})
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">messages_published</span>
+
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
 
     
       <div id="method-i-connect" class="method-detail ">
@@ -143,7 +337,7 @@ connect, the method  connected? should return false instead of true</p>
 
           
           <div class="method-source-code" id="connect-source">
-            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 22</span>
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 25</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">connect</span>
         <span class="ruby-keyword">begin</span>
                 <span class="ruby-keyword">super</span>
@@ -151,6 +345,64 @@ connect, the method  connected? should return false instead of true</p>
                 <span class="ruby-identifier">disconnect</span>() <span class="ruby-comment">#TODO RAE: This behaviour works when the problem is not due to SSL. Try to fix it for SSL</span>
                 <span class="ruby-identifier">raise</span> <span class="ruby-identifier">ex</span>
         <span class="ruby-keyword">end</span>
+
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-on_demand_act_epd" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">on_demand_act_epd</span><span
+            class="method-args">(epd_id_list, dimming, ap_id="APID")</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>Function <a
+href="SinapseMQTTClient.html#method-i-on_demand_act_epd">#on_demand_act_epd</a>
+- API: 3. OnDemand Actuation (Lighting Status) Input arguments:
+epd_id_list: List of epd devices. It should contains at least one epd id
+(RF or IoT) dimming: Integer between 0 and 100. It indicates the status of
+the light. 0=OFF, 100=ON(100%) 50=ON-DIMMING_TO(50%) ap_id: Id of the
+Access point to be used to reach the epd, or the list of epds. The AP_ID
+can be the ID of a AP, a group ID or a broadcast ID. The default value is
+APID -&gt; It is not necessary any AP to reach the end point device Output:
+Returns an array of hashes with the messages published in each topic. The
+hashes are like {:topic =&gt; topic, :message =&gt; message}</p>
+          
+          
+
+          
+          <div class="method-source-code" id="on_demand_act_epd-source">
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 90</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">on_demand_act_epd</span>(<span class="ruby-identifier">epd_id_list</span>, <span class="ruby-identifier">dimming</span>, <span class="ruby-identifier">ap_id</span>=<span class="ruby-string">&quot;APID&quot;</span>)
+
+        <span class="ruby-identifier">check_epd_general_arguments_and_connection</span>(<span class="ruby-identifier">epd_id_list</span>, <span class="ruby-identifier">ap_id</span>)
+        <span class="ruby-identifier">check_epd_dimming</span>(<span class="ruby-identifier">dimming</span>)
+
+        <span class="ruby-identifier">messages_published</span> = []
+        
+        <span class="ruby-identifier">basic_topic</span> = <span class="ruby-ivar">@installation_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/&quot;</span><span class="ruby-operator">+</span> <span class="ruby-identifier">ap_id</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;/&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;ACT/&quot;</span>
+        <span class="ruby-identifier">message</span> = <span class="ruby-string">&quot;3;&quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">dimming</span>.<span class="ruby-identifier">to_s</span> <span class="ruby-operator">+</span> <span class="ruby-string">&quot;;&quot;</span>   
+        <span class="ruby-identifier">epd_id_list</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">epd_id</span><span class="ruby-operator">|</span>
+                <span class="ruby-identifier">topic</span> = <span class="ruby-identifier">basic_topic</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">epd_id</span>        
+                <span class="ruby-identifier">publish</span>(<span class="ruby-identifier">topic</span>, <span class="ruby-identifier">message</span>)
+                <span class="ruby-identifier">messages_published</span>.<span class="ruby-identifier">push</span>({<span class="ruby-value">:topic</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">topic</span>, <span class="ruby-value">:message</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">message</span>})
+        <span class="ruby-keyword">end</span>
+
+        <span class="ruby-keyword">return</span> <span class="ruby-identifier">messages_published</span>
 
 <span class="ruby-keyword">end</span></pre>
           </div>
@@ -186,7 +438,7 @@ doesn&#39;t block the program</p>
 
           
           <div class="method-source-code" id="receive_messages_from_subscribed_topics-source">
-            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 36</span>
+            <pre><span class="ruby-comment"># File lib/sinapse_mqtt_client/mqtt_client.rb, line 39</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">receive_messages_from_subscribed_topics</span> 
         <span class="ruby-keyword">if</span> <span class="ruby-identifier">block_given?</span>
                         <span class="ruby-comment">#@client.get do |topic, message|</span>
