@@ -140,6 +140,36 @@ module SinapseMQTTClientWrapper
 
 		end
 
+		# Function configure_alert_threshold_act_epd - API: 6. Configure threshold
+		# Input arguments:
+		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)
+		# alerts_threshold: hash with three elements indicating the thresholds to create an alarm in relation with the
+		# temperature in C, current in A and voltage in V. Example:
+		# {:temperature => "50", current => "X", voltage => "260" }
+		# Values: Int > 0, -1 (Delete threshold), "X" (Do not modify the current threshold)
+		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def configure_alerts_threshold_act_epd(epd_id_list, alerts_threshold, ap_id="APID")
+
+			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
+			check_alerts_threshold_epd(alerts_threshold)
+
+			messages_published = []
+			
+			basic_topic = @installation_id + "/"+ ap_id + "/" + "ACT/"
+			message = "6;" + alerts_threshold[:temperature]+ ";" + alerts_threshold[:current] + ";" + alerts_threshold[:voltage] + ";"   
+			epd_id_list.each do |epd_id|
+				topic = basic_topic + epd_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+
+		end
+
 
 
 		# AP / CMC Commands (Access Point commands)	
@@ -235,6 +265,10 @@ private
 			lighting_profile.each do |lighting_profile_step|
 				check_dimming_epd(lighting_profile_step[:dimming].to_i)
 			end
+		end
+
+		def check_alerts_threshold_epd(alerts_threshold)
+			#RAE TODO
 		end
 
 		def arrange_lighting_profile_epd(lighting_profile)

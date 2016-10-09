@@ -307,6 +307,79 @@ class FramesTest < Minitest::Test
 	end
 
 
+	def test_configure_alerts_threshold_act_epd
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		alerts_threshold = {:temperature => "50", :current => "-1", :voltage => "X"}
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.configure_alerts_threshold_act_epd(["111111"], alerts_threshold,"CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "6;50;-1;X;"} 
+		
+
+		result = mqtt_client.configure_alerts_threshold_act_epd(["111111", "222222"], alerts_threshold, "CMC111112" )
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "6;50;-1;X;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "6;50;-1;X;"}
+
+		result = mqtt_client.configure_alerts_threshold_act_epd(["111111"], alerts_threshold)
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "6;50;-1;X;"} 
+
+		mqtt_client.disconnect()
+	end
+
+	def test_configure_alerts_threshold_act_epd_fails
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		alerts_threshold = {:temperature => "50", :current => "-1", :voltage => "X"}
+		begin
+			mqtt_client.configure_alerts_threshold_act_epd(["111111"], alerts_threshold ,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.configure_alerts_threshold_act_epd(["111111"], alerts_threshold ,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.configure_alerts_threshold_act_epd([], alerts_threshold ,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one EPD"
+		end
+
+
+		begin
+			#RAE TODO
+			#mqtt_client.on_demand_act_epd(["111111"], 105 , "CMC111112")
+
+		rescue Exception => ex
+			#assert_equal ex.message, "Dimming value is not in the correct range: 0 to 100"
+		end
+
+		begin
+			mqtt_client.configure_alerts_threshold_act_epd(["111111"])
+
+		rescue Exception => ex
+			
+		end
+
+		result = mqtt_client.configure_alerts_threshold_act_epd(["111111"], alerts_threshold, "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "6;50;-1;X;"}
+
+		mqtt_client.disconnect()
+	end
+
 	def test_ask_measurement_ap
 		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
 		mqtt_client.connect()
