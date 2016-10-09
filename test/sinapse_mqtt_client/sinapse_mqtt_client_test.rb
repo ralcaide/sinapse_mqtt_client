@@ -167,6 +167,76 @@ class FramesTest < Minitest::Test
 		mqtt_client.disconnect()
 	end
 
+	def test_lighting_profile_act_epd
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		lighting_profile = []
+		lighting_profile.push({:dimming => "0", :start_time => "09:00"})
+		lighting_profile.push({:dimming => "100", :start_time => "19:00"})
+		result = mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile,"CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "2;0;09:00;100;19:00;"} 
+		
+
+		result = mqtt_client.lighting_profile_act_epd(["111111", "222222"], lighting_profile, "CMC111112" )
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "2;0;09:00;100;19:00;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "2;0;09:00;100;19:00;"}
+
+		result = mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile)
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "2;0;09:00;100;19:00;"} 
+
+		mqtt_client.disconnect()
+	end
+
+	def test_lighting_profile_act_epd_fails
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		lighting_profile = []
+		lighting_profile.push({:dimming => "100", :start_time => "09:00"})
+
+		begin
+			mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile ,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile, "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.lighting_profile_act_epd([], lighting_profile,"CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one EPD"
+		end
+
+		lighting_profile.push({:dimming => "105", :start_time => "19:00"})
+		begin
+			mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile , "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "Dimming value is not in the correct range: 0 to 100"
+		end	
+
+		lighting_profile = []
+		lighting_profile.push({:dimming => "0", :start_time => "09:00"})
+		lighting_profile.push({:dimming => "100", :start_time => "19:00"})
+		
+		result = mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile ,"CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "2;0;09:00;100;19:00;"}
+
+		mqtt_client.disconnect()
+	end
+
 	def test_on_demand_act_epd
 		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
 		mqtt_client.connect()
