@@ -254,7 +254,7 @@ private
 		end
 
 		def check_dimming_epd(dimming)
-			unless dimming.between?(0, 100)
+			unless dimming.between?(-1, 100) #Dimming can be -1 in order to remove lighting profiles  
 				raise "Dimming value is not in the correct range: 0 to 100"
 			end
 

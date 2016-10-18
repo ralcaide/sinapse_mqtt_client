@@ -184,7 +184,12 @@ class FramesTest < Minitest::Test
 		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "2;0;09:00;100;19:00;"}
 
 		result = mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile)
-		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "2;0;09:00;100;19:00;"} 
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "2;0;09:00;100;19:00;"}
+
+		lighting_profile = []
+		lighting_profile.push({:dimming => "-1", :start_time => "00:00"})
+		result = mqtt_client.lighting_profile_act_epd(["111111"], lighting_profile)
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "2;-1;00:00;"} 
 
 		mqtt_client.disconnect()
 	end
