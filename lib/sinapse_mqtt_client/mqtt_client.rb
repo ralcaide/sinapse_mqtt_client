@@ -37,6 +37,7 @@ module SinapseMQTTClientWrapper
 		# It runs as a forever / infinite loop if it is called with a block. If not, it waits until a message is received and is returned to a the caller
 		# If the method is called with a block, it is necessary to create a thread in order to doesn't block the program
 		def receive_messages_from_subscribed_topics 
+			begin
 			if block_given?
 					#@client.get do |topic, message|
 					get do |topic, message|	
@@ -46,6 +47,9 @@ module SinapseMQTTClientWrapper
 				#topic, message = @client.get
 				topic, message = get
 				return topic, message
+			end
+			rescue
+				#RAE TODO: To improve the behaviour when an exception es received
 			end
 		end
 
