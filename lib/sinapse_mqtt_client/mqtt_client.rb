@@ -48,7 +48,7 @@ module SinapseMQTTClientWrapper
 				topic, message = get
 				return topic, message
 			end
-			rescue Exception => ex
+			rescue
 				#RAE TODO: To improve the behaviour when an exception es received
 			end
 		end
