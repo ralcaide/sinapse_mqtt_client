@@ -177,16 +177,18 @@ module SinapseMQTTClientWrapper
 		# Function ask_measurement_ap - API: 9. Pull measurement
 		# Input arguments:
 		# ap_id_list:  List of AP devices. It should contains at least one AP ID. The AP_ID can be the ID of a AP, a group ID or
+		# ap_topic_id: Part of the topic to identify the AP. In the Sinapse API, the default value is CMC but will be dynamic in order
+		# to ease the adaptation to other APIs 
 		# a broadcast ID.
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def ask_measurement_ap(ap_id_list)
+		def ask_measurement_ap(ap_id_list, ap_topic_id="CMC")
 			
 			check_general_arguments_and_connection_ap(ap_id_list)
 
 			messages_published = []
 			
-			basic_topic = @installation_id + "/CMC/ACT/" 
+			basic_topic = @installation_id + "/" + ap_topic_id + "/" + "ACT/" 
 			message = "1;" 
 			ap_id_list.each do |ap_id|
 				topic = basic_topic + ap_id 	
@@ -203,16 +205,18 @@ module SinapseMQTTClientWrapper
 		# ap_id_list:  List of AP devices. It should contains at least one AP ID. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID.
 		# relay_status_list: List of seven elements that contains the status of each relay -> 0 / 1 / X
+		# ap_topic_id: Part of the topic to identify the AP. In the Sinapse API, the default value is CMC but will be dynamic in order
+		# to ease the adaptation to other APIs 
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def change_relay_status_ap(ap_id_list, relay_status_list)
+		def change_relay_status_ap(ap_id_list, relay_status_list, ap_topic_id="CMC")
 			
 			check_general_arguments_and_connection_ap(ap_id_list)
 			check_relay_status_list_ap(relay_status_list)
 
 			messages_published = []
 			
-			basic_topic = @installation_id + "/CMC/ACT/" 
+			basic_topic = @installation_id + "/" + ap_topic_id + "/" + "ACT/" 
 			message = "ACT" + relay_status_list[0] + ";ACT" + relay_status_list[1] + ";ACT" + relay_status_list[2] \
 				+ ";ACT" + relay_status_list[3] \
 				+ ";ACT" + relay_status_list[4] \

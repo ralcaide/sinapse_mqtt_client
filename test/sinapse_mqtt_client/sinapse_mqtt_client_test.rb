@@ -392,6 +392,10 @@ class FramesTest < Minitest::Test
 		mqtt_client.installation_id = "INSTALLATION"
 		result = mqtt_client.ask_measurement_ap(["CMC111111"],)
 		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "1;"} 
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.ask_measurement_ap(["CMC111111"], "EN")
+		assert_equal result[0], {:topic => "INSTALLATION/EN/ACT/CMC111111", :message => "1;"} 
 		
 
 		result = mqtt_client.ask_measurement_ap(["CMC111111", "CMC222222"])
@@ -442,8 +446,10 @@ class FramesTest < Minitest::Test
 
 		mqtt_client.installation_id = "INSTALLATION"
 		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"])
-		
 		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACTX;ACTX;"} 
+
+		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"], "EN")
+		assert_equal result[0], {:topic => "INSTALLATION/EN/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACTX;ACTX;"}
 		
 
 		result = mqtt_client.change_relay_status_ap(["CMC111111", "CMC222222"], ["0","1", "X","X","X","1","X"])
@@ -453,7 +459,7 @@ class FramesTest < Minitest::Test
 		mqtt_client.disconnect()
 	end
 
-	def test_change_relay_status_ap
+	def test_change_relay_status_ap_catching_exceptions
 
 		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
 
