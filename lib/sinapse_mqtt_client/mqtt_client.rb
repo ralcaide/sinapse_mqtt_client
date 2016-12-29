@@ -140,6 +140,31 @@ module SinapseMQTTClientWrapper
 
 		end
 
+
+		# Function ask_measurement_periodically_epd - API: 4. Pull periodically measurement
+		# Input arguments:
+		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)
+		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
+		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# period: Int representing the period of the measurement
+		# Output:
+		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
+		def ask_measurement_periodically_epd(epd_id_list, period, ap_id="APID")
+			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
+			# TODO: To check period
+			messages_published = []
+			
+			basic_topic = @installation_id + "/"+ ap_id + "/" + "ACT/"
+			message = "4;" + period.to_s + ";" 
+			epd_id_list.each do |epd_id|
+				topic = basic_topic + epd_id 	
+				publish(topic, message)
+				messages_published.push({:topic => topic, :message => message})
+			end
+
+			return messages_published
+		end
+
 		# Function configure_alert_threshold_act_epd - API: 6. Configure threshold
 		# Input arguments:
 		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)

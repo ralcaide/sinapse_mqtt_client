@@ -167,6 +167,61 @@ class FramesTest < Minitest::Test
 		mqtt_client.disconnect()
 	end
 
+	def test_ask_measurement_periodically_epd
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+
+		mqtt_client.installation_id = "INSTALLATION"
+		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"} 
+		
+
+		result = mqtt_client.ask_measurement_periodically_epd(["111111", "222222"], "5", "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "4;5;"}
+
+		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5)
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "4;5;"}
+
+		mqtt_client.disconnect() 
+
+	end
+
+	def test_ask_measurement_periodically_epd_fails
+
+		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+
+		begin
+			mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The client is disconnected from the broker"
+			mqtt_client.connect()
+		end
+		
+		
+		begin
+			mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "The ID of the installation can not be empty"
+			mqtt_client.installation_id = "INSTALLATION"
+		end
+ 	
+ 		
+		begin
+			mqtt_client.ask_measurement_periodically_epd([], 5, "CMC111112")
+
+		rescue Exception => ex
+			assert_equal ex.message, "It should be provided at least one EPD"
+		end
+
+		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"}
+
+		mqtt_client.disconnect()
+	end
+
 	def test_lighting_profile_act_epd
 		mqtt_client = SinapseMQTTClientWrapper::SinapseMQTTClient.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
 		mqtt_client.connect()
