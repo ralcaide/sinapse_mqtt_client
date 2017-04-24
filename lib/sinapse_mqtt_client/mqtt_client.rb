@@ -59,9 +59,10 @@ module SinapseMQTTClientWrapper
 		# epd_id_list: List of epd devices. It should contains at least one epd id (RF or IoT)
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def ask_measurement_epd(epd_id_list, ap_id="APID")
+		def ask_measurement_epd(epd_id_list, ap_id="APID", sleep_time = 0)
 			
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 
@@ -73,6 +74,7 @@ module SinapseMQTTClientWrapper
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
 				messages_published.push({:topic => topic, :message => message})
+				sleep sleep_time
 			end
 
 			return messages_published
@@ -87,9 +89,10 @@ module SinapseMQTTClientWrapper
 		# [{:dimming => "0", :start_time => "09:00"}, {:dimming => "100", :start_time => "19:00"}]
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def lighting_profile_act_epd(epd_id_list, lighting_profile, ap_id="APID")
+		def lighting_profile_act_epd(epd_id_list, lighting_profile, ap_id="APID", sleep_time = 0)
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 			lighting_profile = arrange_lighting_profile_epd(lighting_profile)
 			check_lighting_profile_epd(lighting_profile)
@@ -107,6 +110,7 @@ module SinapseMQTTClientWrapper
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
 				messages_published.push({:topic => topic, :message => message})
+				sleep sleep_time
 			end
 
 			return messages_published
@@ -119,9 +123,10 @@ module SinapseMQTTClientWrapper
 		# dimming: Integer between 0 and 100. It indicates the status of the light. 0=OFF, 100=ON(100%) 50=ON-DIMMING_TO(50%)
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def on_demand_act_epd(epd_id_list, dimming, ap_id="APID")
+		def on_demand_act_epd(epd_id_list, dimming, ap_id="APID", sleep_time = 0)
 
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 			check_dimming_epd(dimming)
@@ -134,6 +139,7 @@ module SinapseMQTTClientWrapper
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
 				messages_published.push({:topic => topic, :message => message})
+				sleep sleep_time
 			end
 
 			return messages_published
@@ -147,9 +153,10 @@ module SinapseMQTTClientWrapper
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
 		# period: Int representing the period of the measurement
+		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def ask_measurement_periodically_epd(epd_id_list, period, ap_id="APID")
+		def ask_measurement_periodically_epd(epd_id_list, period, ap_id="APID", sleep_time = 0)
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 			# TODO: To check period
 			messages_published = []
@@ -160,6 +167,7 @@ module SinapseMQTTClientWrapper
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
 				messages_published.push({:topic => topic, :message => message})
+				sleep sleep_time
 			end
 
 			return messages_published
@@ -174,9 +182,10 @@ module SinapseMQTTClientWrapper
 		# Values: Int > 0, -1 (Delete threshold), "X" (Do not modify the current threshold)
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
+		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def configure_alerts_threshold_act_epd(epd_id_list, alerts_threshold, ap_id="APID")
+		def configure_alerts_threshold_act_epd(epd_id_list, alerts_threshold, ap_id="APID", sleep_time = 0)
 
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 			check_alerts_threshold_epd(alerts_threshold)
@@ -189,6 +198,7 @@ module SinapseMQTTClientWrapper
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
 				messages_published.push({:topic => topic, :message => message})
+				sleep sleep_time
 			end
 
 			return messages_published
