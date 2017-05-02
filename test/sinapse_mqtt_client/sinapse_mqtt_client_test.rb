@@ -524,6 +524,7 @@ class FramesTest < Minitest::Test
 		rescue Exception => ex
 			assert_equal ex.message, "The client is disconnected from the broker"
 			mqtt_client.connect()
+
 		end
 		
 		
@@ -558,9 +559,47 @@ class FramesTest < Minitest::Test
 			assert_equal ex.message, "The value of a relay status should be 1, 0 or X"
 		end
 
-		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1", "X","X","X","X","X"] )
+		result = mqtt_client.change_relay_status_ap(["CMC111111"], ["0","1","X","X","X","X","X"] )
 		assert_equal result[0], {:topic => "INSTALLATION/CMC/ACT/CMC111111", :message => "ACT0;ACT1;ACTX;ACTX;ACTX;ACTX;ACTX;"}
 		
 		mqtt_client.disconnect()
 	end
+
+
+
+
+	# Tests for Vodafone EPD simulator
+	def test_simulate_status_frame
+		mqtt_client = SinapseEPDSimulatorVodafone.new(:host => $MQTT_broker, :port => $normal_port, :username => $MQTT_user, :password => $MQTT_password)
+		mqtt_client.connect()
+		
+		# Simulating EPD
+		#result = mqtt_client.simulate_status_frame
+		#assert_equal result[0], {:topic => "LU/LUM/SEN", :message => "FFFFFF;30;1;90;150;220;60;0;60;60;0;60;50"} # RAE: To Improve
+
+		# EPD with data
+		status_parameters = {
+			id_radio: "123456",
+			temp: 30,
+			stat: 1,
+			dstat: 75,
+			voltage: 220,
+			current: 120,
+			active_power: 75,
+			reactive_power: 0,
+			apparent_power: 75,
+			aggregated_active_energy: 150,
+			aggregated_reactive_energy: 0,
+			aggregated_apparent_energy: 150,
+			frequency: 50
+		}
+
+		result = mqtt_client.simulate_status_frame("LU/LUM/SEN", status_parameters)
+		assert_equal result[0], {:topic => "LU/LUM/SEN", :message => "123456;30;1;75;120;220.0;75.0;0.0;75.0;150;0;150;50"} # RAE: To Improve
+
+		mqtt_client.disconnect()
+
+	end
+
+	# End tests for Vodafone EPD simulator
 end
