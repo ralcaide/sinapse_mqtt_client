@@ -20,7 +20,7 @@ class SinapseEPDSimulatorVodafone < SinapseMQTTClientWrapper::SinapseMQTTClient
 
 		message = params[:id_radio].to_s + ";" + params[:temp].to_i.to_s + ";" + params[:stat].to_s + ";" + params[:dstat].to_s + ";" + params[:current].to_i.to_s +
 			";" + params[:voltage].to_f.round(1).to_s + ";" + params[:active_power].to_f.round(1).to_s + ";" + params[:reactive_power].to_f.round(1).to_s + ";" + params[:apparent_power].to_f.round(1).to_s + 
-			";" + params[:aggregated_active_energy].to_i.to_s + ";" + params[:aggregated_reactive_energy].to_i.to_s + ";" + params[:aggregated_apparent_energy].to_i.to_s + ";" + params[:frequency].to_i.to_s	
+			";" + params[:aggregated_active_energy].to_i.to_s + ";" + params[:aggregated_reactive_energy].to_i.to_s + ";" + params[:aggregated_apparent_energy].to_i.to_s + ";" + params[:frequency].to_i.to_s + ";"	
 
 		publish(topic, message)
 		

@@ -595,7 +595,7 @@ class FramesTest < Minitest::Test
 		}
 
 		result = mqtt_client.simulate_status_frame("LU/LUM/SEN", status_parameters)
-		assert_equal result[0], {:topic => "LU/LUM/SEN", :message => "123456;30;1;75;120;220.0;75.0;0.0;75.0;150;0;150;50"} # RAE: To Improve
+		assert_equal result[0], {:topic => "LU/LUM/SEN", :message => "123456;30;1;75;120;220.0;75.0;0.0;75.0;150;0;150;50;"} # RAE: To Improve
 
 		mqtt_client.disconnect()
 
