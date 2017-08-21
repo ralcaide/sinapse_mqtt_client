@@ -22,6 +22,9 @@ class SinapseEPDSimulatorVodafone < SinapseMQTTClientWrapper::SinapseMQTTClient
 			";" + params[:voltage].to_f.round(1).to_s + ";" + params[:active_power].to_f.round(1).to_s + ";" + params[:reactive_power].to_f.round(1).to_s + ";" + params[:apparent_power].to_f.round(1).to_s + 
 			";" + params[:aggregated_active_energy].to_i.to_s + ";" + params[:aggregated_reactive_energy].to_i.to_s + ";" + params[:aggregated_apparent_energy].to_i.to_s + ";" + params[:frequency].to_i.to_s + ";"	
 
+		if !params[:timestamp].nil?
+			message = message + params[:timestamp].to_i.to_s + ";"
+		end
 		publish(topic, message)
 		
 		messages_published.push({:topic => topic, :message => message})
