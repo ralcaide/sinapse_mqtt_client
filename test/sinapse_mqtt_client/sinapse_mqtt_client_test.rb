@@ -173,15 +173,15 @@ class FramesTest < Minitest::Test
 
 		mqtt_client.installation_id = "INSTALLATION"
 		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
-		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"} 
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;00:00;23:59;-1;"} 
 		
 
-		result = mqtt_client.ask_measurement_periodically_epd(["111111", "222222"], "5", "CMC111112")
-		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"}
-		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "4;5;"}
+		result = mqtt_client.ask_measurement_periodically_epd(["111111", "222222"], "5", "CMC111112", "01:00", "02:00", "5")
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;01:00;02:00;5;"}
+		assert_equal result[1], {:topic => "INSTALLATION/CMC111112/ACT/222222", :message => "4;5;01:00;02:00;5;"}
 
 		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5)
-		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "4;5;"}
+		assert_equal result[0], {:topic => "INSTALLATION/APID/ACT/111111", :message => "4;5;00:00;23:59;-1;"}
 
 		mqtt_client.disconnect() 
 
@@ -217,7 +217,7 @@ class FramesTest < Minitest::Test
 		end
 
 		result = mqtt_client.ask_measurement_periodically_epd(["111111"], 5, "CMC111112")
-		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;"}
+		assert_equal result[0], {:topic => "INSTALLATION/CMC111112/ACT/111111", :message => "4;5;00:00;23:59;-1;"}
 
 		mqtt_client.disconnect()
 	end

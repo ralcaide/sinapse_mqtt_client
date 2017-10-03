@@ -153,16 +153,19 @@ module SinapseMQTTClientWrapper
 		# ap_id: Id of the Access point to be used to reach the epd, or the list of epds. The AP_ID can be the ID of a AP, a group ID or
 		# a broadcast ID. The default value is APID -> It is not necessary any AP to reach the end point device
 		# period: Int representing the period of the measurement
+		# start_time: String representing the start time with the format "HH:MM"
+		# end_time: String representing the end time with the format "HH:MM"
+		# ntimes: Number of the maximum repetitions in the given time. -1 means always
 		# sleep_time : Sleep time between MQTT commands in seconds
 		# Output:
 		# Returns an array of hashes with the messages published in each topic. The hashes are like {:topic => topic, :message => message}
-		def ask_measurement_periodically_epd(epd_id_list, period, ap_id="APID", sleep_time = 0)
+		def ask_measurement_periodically_epd(epd_id_list, period, ap_id="APID", start_time="00:00", end_time="23:59", ntimes = "-1", sleep_time = 0)
 			check_general_arguments_and_connection_epd(epd_id_list, ap_id)
 			# TODO: To check period
 			messages_published = []
 			
 			basic_topic = @installation_id + "/"+ ap_id + "/" + "ACT/"
-			message = "4;" + period.to_s + ";" 
+			message = "4;" + period.to_s + ";"+ start_time.to_s + ";" + end_time.to_s + ";"+ ntimes.to_s + ";"
 			epd_id_list.each do |epd_id|
 				topic = basic_topic + epd_id 	
 				publish(topic, message)
