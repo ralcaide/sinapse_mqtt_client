@@ -75,6 +75,59 @@ if mqtt_client.connected?
 end
 ```
 
+### Publish any message using the singleton class
+
+
+```ruby
+mqtt_client = SinapseMQTTClientSingleton.instance
+
+
+if mqtt_client.connected?
+	#mqtt_client.publish(topic, message)
+	mqtt_client.publish("TEST_INSTALLATION/TEST_TOPIC", "TEST MESSAGE;")	
+end
+```
+
+### Subscribe to any topic using the singleton class
+
+```ruby
+mqtt_client = SinapseMQTTClientSingleton.instance
+
+
+if mqtt_client.connected?
+	#mqtt_client.subscribe(topic)
+	topics = ["TEST_INSTALLATION/topic1", "TEST_INSTALLATION/topic2"]
+	if mqtt_client.connected?
+		topics.each do |topic|	
+			mqtt_client.subscribe(topic)
+			mqtt_client.topics_subscribed.push(topic)
+		end
+	end
+end
+```
+
+### Receive messages contantly using a background job
+
+```ruby
+
+class ReceiveMqttMessagesJob < ActiveJob::Base
+	 self.queue_adapter = :sucker_punch
+
+  def perform()
+    mqtt_client = SinapseMQTTClientSingleton.instance
+   
+
+    if mqtt_client.connected? then
+   	mqtt_client.receive_messages_from_subscribed_topics do |topic, message|
+		 mqtt_client.messages_received.push("Message: " + message + " received in topic: " + topic)
+		 
+		 # PROCESS the MESSAGE
+	end
+    end
+  end  
+		
+end
+```
 
 
 ## Contributing
