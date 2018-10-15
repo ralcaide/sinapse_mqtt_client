@@ -30,6 +30,53 @@ Or install it yourself as:
 
 TODO: Write usage instructions here
 
+### Create a singleton class to be used in a Rails / Sinatra application
+
+```ruby
+require 'sinapse_mqtt_client'
+require 'singleton'
+
+class SinapseMQTTClientSingleton < SinapseMQTTClientWrapper::SinapseMQTTClient
+	include Singleton
+
+	attr_reader :messages_received, :topics_subscribed, 
+
+	def start_historical_variables_of_MQTT_client_singleton
+		@messages_received = Array.new  #Array where the received messages are saved
+		@topics_subscribed = Array.new
+	end
+
+end
+```
+
+### Connect / Disconnect using the singleton class
+
+```ruby
+mqtt_client = SinapseMQTTClientSingleton.instance
+mqtt_client.host = "sinapsemqtt.com"
+mqtt_client.port = 1883
+mqtt_client.username = "user"
+mqtt_client.password = "password"
+mqtt_client.installation_id = "TEST_INSTALLATION"
+mqtt_client.ssl = false
+mqtt_client.keep_alive = 3600
+
+# Connect
+mqtt_client.connect()
+
+# Start basic singleton variables
+mqtt_client.start_historical_variables_of_MQTT_client_singleton
+
+
+# Test connection and then disconnect
+
+if mqtt_client.connected?
+    mqtt_client.disconnect
+end
+```
+
+
+
 ## Contributing
 
 1. Fork it ( https://github.com/[my-github-username]/sinapse_mqtt_client/fork )
